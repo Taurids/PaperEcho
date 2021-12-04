@@ -1,38 +1,56 @@
 # coding=utf-8
 import numpy as np
-from keras.datasets import mnist
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import KernelPCA
+from sklearn.datasets import fetch_openml
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA, KernelPCA
 import matplotlib.pyplot as plt
 
-# 数据预处理
-(X_train, y_train), (X_test, y_test) = mnist.load_data()
-x = np.append(X_train, X_test)
-x = np.reshape(x, (70000, 28*28))
-sc = StandardScaler()
-x = sc.fit_transform(x)
 
-# 调用 PCA 方法
-kpca = KernelPCA(n_components=0.75, kernel='rbf', fit_inverse_transform=True)
-X_reduced = kpca.fit_transform(x)
-X_recovered = kpca.inverse_transform(X_reduced)
+def plot_digits(X, title):
+    """Small helper function to plot 25 digits."""
+    fig, axs = plt.subplots(nrows=5, ncols=5, figsize=(5, 5))
+    for img, ax in zip(X, axs.ravel()):
+        ax.imshow(img.reshape((28, 28)), cmap="Greys")
+        ax.axis("off")
+    fig.suptitle(title, fontsize=15)
 
-n = 5  # 显示的记录数
-plt.figure(figsize=(10, 4))
-for i in range(n):
-    # 显示原始图片
-    ax = plt.subplot(2, n, i + 1)
-    plt.imshow(X_train[i].reshape(28, 28))
-    plt.gray()
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
 
-plt.figure(figsize=(10, 4))
-for i in range(n):
-    # 显示原始图片
-    ax = plt.subplot(2, n, i + 1)
-    plt.imshow(X_recovered[i].reshape(28, 28))
-    plt.gray()
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
+# ------------- Data Preprocess -------------------------
+# Load MNIST dataset
+X, y = fetch_openml('mnist_784', version=1, return_X_y=True)
+# normalize the dataset such that all pixel values are in the range (0, 1).
+X = MinMaxScaler().fit_transform(X)
+# split the dataset into a training and testing set
+X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_state=7, train_size=2000, test_size=100)
+# add a Gaussian noise to create a new dataset
+rng = np.random.RandomState(7)
+noise = rng.normal(scale=0.25, size=X_train.shape)
+X_train_noisy = X_train + noise
+noise = rng.normal(scale=0.25, size=X_test.shape)
+X_test_noisy = X_test + noise
+
+# --------- Learn the PCA basis --------------------
+pca = PCA(n_components=154)
+kernel_pca = KernelPCA(n_components=154, kernel="rbf", alpha=5e-3, gamma=1e-3, fit_inverse_transform=True)
+pca.fit(X_train_noisy)
+kernel_pca.fit(X_train_noisy)
+
+# --------- Reconstruct and denoise test images --------------------
+X_reconstructed_pca = pca.inverse_transform(pca.transform(X_test_noisy))
+X_reconstructed_kernel_pca = kernel_pca.inverse_transform(kernel_pca.transform(X_test_noisy))
+
+# ---------- Data Visualization ------------------------------------
+# see the difference among noise-free images, noisy images and denoised images
+plot_digits(X_test, "Uncorrupted test images")
+plot_digits(X_test_noisy, f"Noisy test images\nMSE: {np.mean((X_test - X_test_noisy) ** 2):.2f}")
+plot_digits(
+    X_reconstructed_pca,
+    f"PCA reconstruction\nMSE: {np.mean((X_test - X_reconstructed_pca) ** 2):.2f}",
+)
+plot_digits(
+    X_reconstructed_kernel_pca,
+    "Kernel PCA reconstruction\n"
+    f"MSE: {np.mean((X_test - X_reconstructed_kernel_pca) ** 2):.2f}",
+)
 plt.show()
