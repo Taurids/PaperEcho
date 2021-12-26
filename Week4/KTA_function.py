@@ -4,16 +4,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
-def kernels_RBF(X1, X2, _gamma=1):
-    RBF_all = []
-    for i in range(X1.shape[0]):
-        RBF_ = []
-        for j in range(X2.shape[0]):
-            _tmp = np.power(np.linalg.norm(X1[i] - X2[j]), 2)
-            Kij = np.exp(-_gamma * _tmp)
-            RBF_.append(Kij)
-        RBF_all.append(RBF_)
-    return np.array(RBF_all)
+def kernels_RBF(X1, X2, sigma=1):
+    mat = np.sum(X1 ** 2, 1).reshape(-1, 1) + np.sum(X2 ** 2, 1) - 2 * np.dot(X1, X2.T)
+    return np.exp(-0.5 / sigma ** 2 * mat)
 
 
 def kernels_Sigmoid(X1, X2, _theta=1):
