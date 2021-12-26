@@ -5,21 +5,14 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
 
-def kernelRBF(X1, X2, gamma=1):
-    RBF_all = []
-    for i in range(X1.shape[0]):
-        RBF_ = []
-        for j in range(X2.shape[0]):
-            _tmp = np.power(np.linalg.norm(X1[i] - X2[j]), 2)
-            Kij = np.exp(-gamma * _tmp)
-            RBF_.append(Kij)
-        RBF_all.append(RBF_)
-    return np.array(RBF_all)
+def kernelRBF(X1, X2, sigma=None):
+    mat = np.sum(X1 ** 2, 1).reshape(-1, 1) + np.sum(X2 ** 2, 1) - 2 * np.dot(X1, X2.T)
+    return np.exp(-0.5 / sigma ** 2 * mat)
 
 
 # 参数可调
 _lambda = 0.7
-_gamma = 0.3
+_sigma = 0.3
 
 # ------------- 数据预处理 ---------------------
 # 读取数据集
@@ -38,7 +31,12 @@ X_train_T, X_test_T, y_train_T, y_test_T = train_test_split(X, y_T, test_size=0.
 
 # ------------------------------ KRR ----------------------------------------
 # KRR 温度T
-K = kernelRBF(X_train_T, X_train_T)
+K = kernelRBF(X_train_T, X_train_T, _sigma)
+# Centralize the kernel matrix
+N = K.shape[0]
+one_n = np.ones((N, N)) / N
+K = K - one_n.dot(K) - K.dot(one_n) + one_n.dot(K).dot(one_n)
+
 tmp = np.linalg.pinv(K + _lambda)  # [500, 500]
 alpha = np.dot(tmp, y_train_T)  # [500,]
 

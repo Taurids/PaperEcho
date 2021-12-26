@@ -23,16 +23,9 @@ def plot_digits(X, title):
     fig.suptitle(title, fontsize=15)
 
 
-def kernelRBF(X1, X2, _gamma=1):
-    RBF_all = []
-    for i in range(X1.shape[0]):  # [104, 12]
-        RBF_ = []
-        for j in range(X2.shape[0]):  # [413, 12]
-            _tmp = np.power(np.linalg.norm(X1[i] - X2[j]), 2)
-            Kij = np.exp(-_gamma * _tmp)
-            RBF_.append(Kij)
-        RBF_all.append(RBF_)
-    return np.array(RBF_all)
+def kernelRBF(X1, X2, sigma=None):
+    mat = np.sum(X1 ** 2, 1).reshape(-1, 1) + np.sum(X2 ** 2, 1) - 2 * np.dot(X1, X2.T)
+    return np.exp(-0.5 / sigma ** 2 * mat)
 
 
 # ------------- Data Preprocess -------------------------

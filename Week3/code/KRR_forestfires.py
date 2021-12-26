@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # 参数可调
 _lambda = 0.7
-_gamma = 0.3
+_sigma = 0.3
 
 
 # 数据预处理
@@ -19,26 +19,23 @@ x = sc.fit_transform(x)
 X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=7)  # 切分数据集
 
 # RR
-
 tmp = np.linalg.pinv(np.dot(X_train.T, X_train) + _lambda)
 alpha = np.dot(np.dot(tmp, X_train.T), y_train)
 y_rr = np.dot(X_test, alpha)
 
 
 # KRR
-def kernelRBF(X1, X2, gamma=1):
-    RBF_all = []
-    for i in range(X1.shape[0]):  # [104, 12]
-        RBF_ = []
-        for j in range(X2.shape[0]):  # [413, 12]
-            _tmp = np.power(np.linalg.norm(X1[i] - X2[j]), 2)
-            Kij = np.exp(-gamma * _tmp)
-            RBF_.append(Kij)
-        RBF_all.append(RBF_)
-    return np.array(RBF_all)
+def kernelRBF(X1, X2, sigma=None):
+    mat = np.sum(X1 ** 2, 1).reshape(-1, 1) + np.sum(X2 ** 2, 1) - 2 * np.dot(X1, X2.T)
+    return np.exp(-0.5 / sigma ** 2 * mat)
 
 
-K = kernelRBF(X_train, X_train)
+K = kernelRBF(X_train, X_train, _sigma)
+# Centralize the kernel matrix
+N = K.shape[0]
+one_n = np.ones((N, N)) / N
+K = K - one_n.dot(K) - K.dot(one_n) + one_n.dot(K).dot(one_n)
+
 tmp = np.linalg.pinv(K + _lambda)  # [413, 413]
 alpha = np.dot(tmp, y_train)  # [413,]
 

@@ -55,10 +55,9 @@ plt.show()
 
 #  select kernel function and make K
 if args.kernel == 'rbf':
-    gamma = 1
-    sq_dists = distance.pdist(X, 'sqeuclidean')
-    mat_sq_dists = distance.squareform(sq_dists)
-    K = np.exp(-gamma * mat_sq_dists)
+    sigma = 1
+    mat = np.sum(X ** 2, 1).reshape(-1, 1) + np.sum(X ** 2, 1) - 2 * np.dot(X, X.T)
+    K = np.exp(-0.5 / sigma ** 2 * mat)
 elif args.kernel == 'tanh':
     theta = 1
     K = np.tanh(np.matmul(X, X.T) + theta)
@@ -67,6 +66,11 @@ elif args.kernel == 'poly':
     K = np.power(np.matmul(X, X.T) + theta, p)
 else:  # 'linear'
     K = np.matmul(X, X.T)
+
+# Centralize the kernel matrix
+N = K.shape[0]
+one_n = np.ones((N, N)) / N
+K = K - one_n.dot(K) - K.dot(one_n) + one_n.dot(K).dot(one_n)
 
 eigenvalue, eigenvector = np.linalg.eigh(K)  # 关注一下与np.linalg.eig的区别
 x_kpca = eigenvector[:, ::-1][:, :args.n_components]

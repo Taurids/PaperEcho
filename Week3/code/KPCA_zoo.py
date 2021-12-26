@@ -73,6 +73,11 @@ elif args.kernel == 'poly':
 else:  # 'linear'
     K = np.matmul(X, X.T)
 
+# Centralize the kernel matrix
+N = K.shape[0]
+one_n = np.ones((N, N)) / N
+K = K - one_n.dot(K) - K.dot(one_n) + one_n.dot(K).dot(one_n)
+
 eigenvalue, eigenvector = np.linalg.eigh(K)  # 关注一下与np.linalg.eig的区别
 x_kpca = eigenvector[:, ::-1][:, :args.n_components]
 
