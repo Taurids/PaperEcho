@@ -40,14 +40,35 @@ def pairwise_kernels(X, Y=None, kernel="linear", **kwargs):
         return linear(X, Y)
 
 
-# Kernel-Target Alignment
-def KTA(KX, KY):
+# Kernel Alignment
+def KA(KX, KY):
     # ---------- Inner product between matrices ----------------
     HS_IC = np.sum(KX * KY)  # Hilbert-Schmidt independence criterion
     var1 = np.sqrt(np.sum(KX * KX))
     var2 = np.sqrt(np.sum(KY * KY))
     # A = < KX, KY >F / ( || KX ||F, || KY ||F )
     return HS_IC / (var1 * var2)
+
+
+# Kernel-Target Alignment
+def KTA(X, y, kernel='linear', **kwargs):
+    # --------------- get Original Alignment --------------------
+    KX = pairwise_kernels(X, X, kernel=kernel, **kwargs)
+    Ky = np.outer(y, y)
+    # get Alignment
+    ori_A = KA(KX, Ky)
+    # --------------- get Optimal Alignment ---------------------
+    # get vi
+    _, eigenvector = np.linalg.eigh(KX)  # [4, 4]
+    # get alpha
+    LamLagrange = 0.6
+    vyF2 = np.power(np.sum(eigenvector * y.T, axis=1), 2)  # <vi, y>_F^2  [4, 1]
+    alpha = vyF2 / (2 * LamLagrange)  # alpha = <vi, y>_F^2 / (2 * lambda)
+    alpha = alpha / np.sum(alpha)  # 0-1 normalization  [4, 1]
+    # get Alignment
+    W_alpha = np.sum(alpha * vyF2)
+    opt_A = W_alpha / np.sqrt(np.sum(Ky * Ky))
+    return ori_A, opt_A
 
 
 # K -> HKH
@@ -63,7 +84,7 @@ def CKA(KX, KY, center=True):
     # Centering
     KX = Centering(KX) if center is True else KX
     KY = Centering(KY) if center is True else KY
-    return KTA(KX, KY)
+    return KA(KX, KY)
 
 
 def KernelAlignment(X, Y, kernel='linear', center=True, **params):
