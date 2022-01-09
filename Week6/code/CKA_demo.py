@@ -20,7 +20,7 @@ for KF_index, (train_index, valid_index) in enumerate(KF.split(X_train)):
     X_train_, X_valid_ = X_train[train_index], X_train[valid_index]
     y_train_, y_valid_ = y_train[train_index], y_train[valid_index]
 
-    clf = krr.KernelRidge(kernel='rbf', method='alignf', gamma=[-9, -3], REG=False)
+    clf = krr.KernelRidge(kernel='rbf', method='alignf', gamma=gamma, REG=False)
     clf.fit(X_train_, y_train_)
     y_krr = clf.predict(X_valid_)
 
