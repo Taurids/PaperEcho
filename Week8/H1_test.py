@@ -11,7 +11,7 @@ sns.set()
 
 m, n = 1000, 800
 t = m + n
-c = 100
+c = 88
 rhoX, rhoY = m / t, n / t
 
 MMDu2_list = []
@@ -24,7 +24,7 @@ for i in tqdm(range(2000)):
     eigenvalue_Kxx, _ = np.linalg.eigh(Kxx)
     eigenvalue_Kyy, _ = np.linalg.eigh(Kyy)
     U, eigenvalue_Kxy, VT = np.linalg.svd(Kxy)
-    # print(eigenvalue[0])
+
     step1 = step2 = step3 = 0
     al = np.random.normal(loc=0, scale=1, size=len(eigenvalue_Kxx))
     bl = np.random.normal(loc=0, scale=1, size=len(eigenvalue_Kyy))
@@ -47,10 +47,5 @@ sns.distplot(MMDu2_list, bins=100)
 # 用正态分布拟合
 plt.legend()
 plt.grid(linestyle='--')
-# n, bins, patches = ax.hist(MMDu2_list, bins=100, range=(-0.04, 0.1), density=True, alpha=0.2)
-# plt.show()
-# y = norm.pdf(bins, 0, 1)
-# ax.plot(bins, y, 'g--', linewidth=3)
-# ax.legend(loc='best', frameon=False)
 plt.show()
 
