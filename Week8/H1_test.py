@@ -1,7 +1,6 @@
 import numpy as np
 from Echo7 import kta
 from tqdm import tqdm
-from scipy.stats import norm
 import seaborn as sns
 import matplotlib.pyplot as plt
 import warnings
