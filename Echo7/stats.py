@@ -25,4 +25,4 @@ def norm2_pdf(x, y, loc_x=0, scale_x=1, loc_y=0, scale_y=1, rho=0.75):
             p = p * np.exp(-(x**2 - 2*rho*x*y + y**2) / (2 - 2*rho**2))
             plist.append(p)
         plists.append(plist)
-    return plists
+    return plists / np.sum(plists)

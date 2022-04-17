@@ -2,8 +2,8 @@ from Echo7 import stats
 import numpy as np
 
 e = np.array(1e-20)  # epsilon
-X = np.linspace(-5, 5, num=11)
-Y = np.linspace(-2, 2, num=5)
+X = np.linspace(-0.5, 0.5, num=11, dtype=float)
+Y = np.linspace(-0.2, 0.2, num=5, dtype=float)
 pxy = stats.norm2_pdf(X, Y)
 px = np.sum(pxy, axis=1)
 py = np.sum(pxy, axis=0)
@@ -24,7 +24,7 @@ HY_X = np.sum(px * HY_X)
 print('Conditional Entropy\'s Value:', HY_X)
 
 # Relative Entropy
-Dpq = -np.sum(px * np.log(px/qx+e))
+Dpq = np.sum(px * np.log(px/qx+e))
 print('Relative Entropy\'s Value:', Dpq)
 
 # Mutual Information
