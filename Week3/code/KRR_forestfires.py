@@ -25,7 +25,7 @@ y_rr = np.dot(X_test, alpha)
 
 
 # KRR
-def kernelRBF(X1, X2, sigma=None):
+def kernelRBF(X1, X2, sigma=1.0):
     mat = np.sum(X1 ** 2, 1).reshape(-1, 1) + np.sum(X2 ** 2, 1) - 2 * np.dot(X1, X2.T)
     return np.exp(-0.5 / sigma ** 2 * mat)
 
